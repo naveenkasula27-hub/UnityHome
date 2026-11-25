@@ -1,0 +1,13 @@
+import {Router} from 'express';
+import bcrypt from 'bcryptjs';
+import mongoose from 'mongoose';
+import {rateLimit} from 'express-rate-limit';
+import {Agency,User} from '../models/index.js';
+import {requireDatabase,optionalAuth,requireAuth,setSession,cookieOptions} from '../middleware/auth.js';
+const router=Router();const limited=rateLimit({windowMs:15*60*1000,limit:20,standardHeaders:'draft-8',legacyHeaders:false,message:{error:'Too many sign-in attempts. Please try again later.'}});
+const identity=u=>({userId:String(u._id),name:u.name,email:u.email,role:u.role,agencyId:u.agency?String(u.agency):null});
+router.post('/register',limited,requireDatabase,async(req,res)=>{const name=String(req.body.name||'').trim(),email=String(req.body.email||'').trim().toLowerCase(),password=req.body.password,agencyName=String(req.body.agencyName||'').trim();if(name.length<2||name.length>100||!/^\S+@\S+\.\S+$/.test(email)||email.length>200||typeof password!=='string'||password.length<12||password.length>128)return res.status(400).json({error:'Enter your name, valid email and a password of 12–128 characters.'});if(await User.exists({email}))return res.status(409).json({error:'This email is already registered. Sign in instead.'});if(req.body.accountType==='agency'&&(agencyName.length<2||agencyName.length>100))return res.status(400).json({error:'Enter your agency name.'});const passwordHash=await bcrypt.hash(password,12);let user;await mongoose.connection.transaction(async session=>{const userId=new mongoose.Types.ObjectId(),isAgency=req.body.accountType==='agency';let agencyId=null;if(isAgency){agencyId=new mongoose.Types.ObjectId();await Agency.create([{_id:agencyId,name:agencyName,brand:agencyName.slice(0,30),businessName:'UnityHome',owner:userId,email}],{session})}const created=await User.create([{_id:userId,name,email,passwordHash,role:isAgency?'owner':'buyer',agency:agencyId}],{session});user=created[0]});setSession(res,user);res.status(201).json({identity:identity(user)})});
+router.post('/login',limited,requireDatabase,async(req,res)=>{const email=String(req.body.email||'').trim().toLowerCase(),password=req.body.password;if(typeof password!=='string'||password.length>128)return res.status(400).json({error:'Enter a valid email and password.'});const user=await User.findOne({email}).select('+passwordHash');if(!user||!await bcrypt.compare(password,user.passwordHash))return res.status(401).json({error:'Incorrect email or password.'});setSession(res,user);res.json({identity:identity(user)})});
+router.get('/me',optionalAuth,requireAuth,(req,res)=>res.json({identity:identity(req.user)}));
+router.post('/logout',(req,res)=>{res.clearCookie('unityhome_session',{...cookieOptions,maxAge:undefined});res.json({ok:true})});
+export default router;
