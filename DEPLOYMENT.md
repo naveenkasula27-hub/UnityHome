@@ -87,3 +87,7 @@ References: https://vercel.com/kb/guide/vercel-services and https://vercel.com/d
 - These checks prepare the source for review; they do not establish a successful Vercel build or live deployment. Changes have not been pushed or deployed by this preparation task.
 
 The longer direct Atlas diagnostic resolved the hosts but failed TLS negotiation on all three nodes with `ERR_SSL_TLSV1_ALERT_INTERNAL_ERROR`. The cause is not yet established; review Atlas network access, cluster availability and any local network interception. TLS verification has not been disabled. Recheck `/api/ready` from Vercel after configuring hosting access.
+
+## First live deployment routing correction
+
+The live deployment returned 404 for `/`, while `/index.html`, `/login`, `/dashboard`, CSS and the logo returned 200. An explicit top-level `/` route now selects the client service’s `/index.html`; all other service routes remain unchanged. This correction needs to be pushed and deployed before live verification. The API health endpoint returned 200, but database readiness returned 503, so Atlas connectivity remains pending.

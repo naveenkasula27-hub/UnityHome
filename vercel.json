@@ -7,7 +7,12 @@
       "installCommand": "npm ci",
       "buildCommand": "npm run build",
       "outputDirectory": "dist",
-      "rewrites": [{"source": "/:path*", "destination": "/index.html"}]
+      "rewrites": [
+        {
+          "source": "/:path*",
+          "destination": "/index.html"
+        }
+      ]
     },
     "server": {
       "root": "server",
@@ -17,8 +22,30 @@
     }
   },
   "rewrites": [
-    {"source": "/api", "destination": {"service": "server"}},
-    {"source": "/api/:path*", "destination": {"service": "server"}},
-    {"source": "/:path*", "destination": {"service": "client"}}
+    {
+      "source": "/",
+      "destination": {
+        "service": "client",
+        "path": "/index.html"
+      }
+    },
+    {
+      "source": "/api",
+      "destination": {
+        "service": "server"
+      }
+    },
+    {
+      "source": "/api/:path*",
+      "destination": {
+        "service": "server"
+      }
+    },
+    {
+      "source": "/:path*",
+      "destination": {
+        "service": "client"
+      }
+    }
   ]
 }
