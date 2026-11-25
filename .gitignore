@@ -9,3 +9,5 @@ client/dist/
 coverage/
 .qodo/
 .runtime/
+
+.vercel/

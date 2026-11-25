@@ -50,7 +50,7 @@ npm test
 npm start
 ```
 
-`npm start` serves the API and the built client from Express. Development binds to loopback. Production hosting, HTTPS, database backup policy, password recovery/email verification, team invitation management and asset uploads are separate deployment/feature steps.
+`npm start` serves the API and the built client from Express. Development binds to loopback. For Vercel Services hosting, follow DEPLOYMENT.md. Database backup policy, password recovery/email verification, team invitation management and asset uploads remain separate operational/feature steps.
 
 ## Automation and assistant
 
@@ -63,3 +63,7 @@ The assistant currently answers from inventory. A server-only `ASSISTANT_WEBHOOK
 `npm run build` checks TypeScript and creates the client build. `npm test` checks API availability, database readiness, unauthenticated access, CORS write protection and malformed requests without connecting to Atlas. Those checks do not prove that live MongoDB credentials or n8n delivery work; verify `/api/health` and `/api/ready` separately.
 
 Atlas DNS troubleshooting: optional `DNS_SERVERS=1.1.1.1,8.8.8.8` in `server/.env` changes DNS resolution only for the UnityHome server process. Leave it empty where the system resolver works.
+
+## Vercel deployment
+
+The root `vercel.json` deploys the client and Express API as two services on one Vercel project and domain. See [DEPLOYMENT.md](DEPLOYMENT.md) for environment variables, Atlas access, push commands and post-deployment checks. This configuration has not itself deployed the website.
